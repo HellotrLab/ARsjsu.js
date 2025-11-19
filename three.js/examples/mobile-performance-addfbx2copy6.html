@@ -173,15 +173,15 @@
         
 //        ///////////////////////////////////////////////////////////
 //        // add a static cube
-        geometry = new THREE.CubeGeometry(1,1,1);
-        material = new THREE.MeshNormalMaterial({
-            transparent : true,
-            opacity: 0.5,
-            side: THREE.DoubleSide
-        }); 
-        mesh = new THREE.Mesh( geometry, material );
-        mesh.position.y	= geometry.parameters.height/2
-        arWorldRoot.add(mesh);
+        // geometry = new THREE.CubeGeometry(1,1,1);
+        // material = new THREE.MeshNormalMaterial({
+        //     transparent : true,
+        //     opacity: 0.5,
+        //     side: THREE.DoubleSide
+        // }); 
+        // mesh = new THREE.Mesh( geometry, material );
+        // mesh.position.y	= geometry.parameters.height/2
+        // arWorldRoot.add(mesh);
 //        // end cube code
 //        ///////////////////////////////////////////////////////////
         
@@ -198,29 +198,88 @@
         onRenderFcts.push(function(){
         mesh.rotation.x += 0.1
         })
+
+         function setup() {
+            var W = window.innerWidth, H = window.innerHeight;
+            
+            // Create renderer with preserveDrawingBuffer for trails
+            renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
+            renderer.autoClearColor = false;
+            renderer.setSize(W, H);
+            document.body.appendChild(renderer.domElement);
+
+            camera = new THREE.PerspectiveCamera(50, W/H, 1, 10000);
+            camera.position.z = 500;
+
+            scene = new THREE.Scene();
+            
+            // Create geometry (torus) and material
+            geometry = new THREE.TorusGeometry(100, 40, 16, 100);
+            material = new THREE.MeshPhongMaterial({ 
+                color: 0xff9500,
+                shininess: 100,
+                specular: 0x222222
+            });
+            
+            mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
+            
+            // Add some lights
+            var ambientLight = new THREE.AmbientLight(0x222222);
+            scene.add(ambientLight);
+            
+            var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+            
+            var pointLight = new THREE.PointLight(0x3366ff, 1, 300);
+            pointLight.position.set(-100, -100, 100);
+            scene.add(pointLight);
+        }
+
+        function draw() {
+            requestAnimationFrame(draw);
+            
+            // Oscillate hue
+            var time = Date.now() * 0.0005;
+            h = (360 * (1.0 + time) % 360) / 360;
+            mesh.material.color.setHSL(h, 0.5, 0.5);
+            
+            // Move and spin the mesh
+            mesh.position.x = Math.sin(Date.now() * 0.001) * 150;
+            mesh.rotation.z = Date.now() * 0.0005;
+            mesh.rotation.y = Date.now() * 0.001;
+            mesh.rotation.x = Date.now() * 0.0007;
+
+            renderer.render(scene, camera);
+        }
+
+        setup();
+        draw();
+
         // end taurus code
        /////////////////////////////////////////////////////////
         
         
         ///////////////////////////////////////////////////////////
         // add a fbx model with animation
-        var loader = new THREE.FBXLoader();
-        loader.load( '../../data/data/handGLoptB.fbx', function ( object ) { //hand animation created with rig
-        //loader.load( '../../data/data/fbxexporttestspherecube3blender1.fbx', function ( object ) {
-            object.mixer = new THREE.AnimationMixer( object );
-            mixers.push( object.mixer );
-            var action = object.mixer.clipAction( object.animations[ 0 ] );
-            action.play();
-            object.traverse( function ( child ) {
-                if ( child.isMesh ) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-                }
-            } );
-            object.scale.set(.02, .02, .02);
-            object.position.x = -1
-            arWorldRoot.add( object );
-        } );
+        // var loader = new THREE.FBXLoader();
+        // loader.load( '../../data/data/handGLoptB.fbx', function ( object ) { //hand animation created with rig
+        // //loader.load( '../../data/data/fbxexporttestspherecube3blender1.fbx', function ( object ) {
+        //     object.mixer = new THREE.AnimationMixer( object );
+        //     mixers.push( object.mixer );
+        //     var action = object.mixer.clipAction( object.animations[ 0 ] );
+        //     action.play();
+        //     object.traverse( function ( child ) {
+        //         if ( child.isMesh ) {
+        //             child.castShadow = true;
+        //             child.receiveShadow = true;
+        //         }
+        //     } );
+        //     object.scale.set(.02, .02, .02);
+        //     object.position.x = -1
+        //     arWorldRoot.add( object );
+        // } );
         //end fbx code
         ///////////////////////////////////////////////////////////
         
@@ -229,47 +288,47 @@
          //add obj model (static)
          // obj texture from jpg
 
-         var manager = new THREE.LoadingManager();
-         manager.onProgress = function ( item, loaded, total ) {
+//          var manager = new THREE.LoadingManager();
+//          manager.onProgress = function ( item, loaded, total ) {
 
-             console.log( item, loaded, total );
+//              console.log( item, loaded, total );
 
-         };
+//          };
 
-         var textureLoader = new THREE.TextureLoader( manager );
-         var texture = textureLoader.load( '../../data/data/cheetah.jpeg' );
+//          var textureLoader = new THREE.TextureLoader( manager );
+//          var texture = textureLoader.load( '../../data/data/cheetah.jpeg' );
 
-         // obj model
-         var onProgress = function ( xhr ) {
-             if ( xhr.lengthComputable ) {
-                 var percentComplete = xhr.loaded / xhr.total * 100;
-                 console.log( Math.round(percentComplete, 2) + '% downloaded' );
-             }
-         };
+//          // obj model
+//          var onProgress = function ( xhr ) {
+//              if ( xhr.lengthComputable ) {
+//                  var percentComplete = xhr.loaded / xhr.total * 100;
+//                  console.log( Math.round(percentComplete, 2) + '% downloaded' );
+//              }
+//          };
 
-         var onError = function ( xhr ) {
-         };
+//          var onError = function ( xhr ) {
+//          };
 
-         var loader = new THREE.OBJLoader( manager );
-         loader.load( '../../data/data/male02/male02.obj', function ( object ) {
+//          var loader = new THREE.OBJLoader( manager );
+//          loader.load( '../../data/data/male02/male02.obj', function ( object ) {
 
-             object.traverse( function ( child ) {
+//              object.traverse( function ( child ) {
 
-                 if ( child instanceof THREE.Mesh ) {
+//                  if ( child instanceof THREE.Mesh ) {
 
-                     child.material.map = texture;
+//                      child.material.map = texture;
 
-                 }
+//                  }
 
-             } );
+//              } );
 
- //					object.position.y = - 95;
- //					scene.add( object );
-             object.scale.set(.02, .02, .02);
-             object.position.z	= -1
-             arWorldRoot.add( object );
+//  //					object.position.y = - 95;
+//  //					scene.add( object );
+//              object.scale.set(.02, .02, .02);
+//              object.position.z	= -1
+//              arWorldRoot.add( object );
 
-         }, onProgress, onError );
+//          }, onProgress, onError );
 
          //end obj code
         ///////////////////////////////////////////////////////////
@@ -281,43 +340,43 @@
         //!!!!****** IMAGE TEXTURES DON'T WORK USE CODE ABOVE TO USE .JPG IMAGE TEXTURE ******!!!!!!!!
         //!!!!****** MAYA OR BLENDER NATIVE MATERIALS ONLY (NO ARNOLD OR CYCLES) ******!!!!!!!!
 	    
-        var onProgress = function ( xhr ) {
-            if ( xhr.lengthComputable ) {
-                var percentComplete = xhr.loaded / xhr.total * 100;
-                console.log( Math.round( percentComplete, 2 ) + '% downloaded' );
-            }
-        };
+        // var onProgress = function ( xhr ) {
+        //     if ( xhr.lengthComputable ) {
+        //         var percentComplete = xhr.loaded / xhr.total * 100;
+        //         console.log( Math.round( percentComplete, 2 ) + '% downloaded' );
+        //     }
+        // };
 	    
-        var onError = function () { };
-        THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader() );
+        // var onError = function () { };
+        // THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader() );
         
-	    new THREE.MTLLoader()
-            .setPath( '../../data/data/' )
-	    .load( 'objFromMaya.mtl', function ( materials ) {
-                materials.preload();
+	    // new THREE.MTLLoader()
+        //     .setPath( '../../data/data/' )
+	    // .load( 'objFromMaya.mtl', function ( materials ) {
+        //         materials.preload();
 
                 
-            new THREE.OBJLoader()
-            .setMaterials( materials )
-            .setPath( '../../data/data/' )
+        //     new THREE.OBJLoader()
+        //     .setMaterials( materials )
+        //     .setPath( '../../data/data/' )
             
-		    .load( 'objFromMaya.obj', function ( object ) {
-                object.scale.set(.25, .25, .25);
-                object.position.z	= 1.2;
-                object.position.x	= -.7;
-                object.rotation.y = 80;
+		//     .load( 'objFromMaya.obj', function ( object ) {
+        //         object.scale.set(.25, .25, .25);
+        //         object.position.z	= 1.2;
+        //         object.position.x	= -.7;
+        //         object.rotation.y = 80;
                 
-                object.traverse((node) => {
-                    if (node.material) {
-                        node.material.transparent = true;
-                        node.material.opacity = 0.5;
-                        node.material.depthWrite = false;  // not node.depthWrite
-                    }
-                });
+        //         object.traverse((node) => {
+        //             if (node.material) {
+        //                 node.material.transparent = true;
+        //                 node.material.opacity = 0.5;
+        //                 node.material.depthWrite = false;  // not node.depthWrite
+        //             }
+        //         });
                 
-                arWorldRoot.add( object );
-            }, onProgress, onError );
-        } );
+        //         arWorldRoot.add( object );
+        //     }, onProgress, onError );
+        // } );
         
 
 //
@@ -331,47 +390,47 @@
         
         
         //////////FROM FBX IMPORT
-        stats = new Stats();
-        container.appendChild( stats.dom );
+    //     stats = new Stats();
+    //     container.appendChild( stats.dom );
         
-	//////////////////////////////////////////////////////////////////////////////////
-	//		render the whole thing on the page
-	//////////////////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////////////////////
+	// //		render the whole thing on the page
+	// //////////////////////////////////////////////////////////////////////////////////
 	
-        var stats2 = new Stats();
-        document.body.appendChild( stats2.dom );
-        // render the scene
-        onRenderFcts.push(function(){
-            renderer.render( scene, camera );
-            stats2.update();
-        })
+    //     var stats2 = new Stats();
+    //     document.body.appendChild( stats2.dom );
+    //     // render the scene
+    //     onRenderFcts.push(function(){
+    //         renderer.render( scene, camera );
+    //         stats2.update();
+    //     })
 
-        // run the rendering loop
-        var lastTimeMsec= null
-        requestAnimationFrame(function animate(nowMsec){
-            // keep looping
-            requestAnimationFrame( animate );
-            // measure time
-            lastTimeMsec	= lastTimeMsec || nowMsec-1000/60
-            var deltaMsec	= Math.min(200, nowMsec - lastTimeMsec)
-            lastTimeMsec	= nowMsec
-            // call each update function
-            onRenderFcts.forEach(function(onRenderFct){
-                onRenderFct(deltaMsec/1000, nowMsec/1000)
-            })
-        })
+    //     // run the rendering loop
+    //     var lastTimeMsec= null
+    //     requestAnimationFrame(function animate(nowMsec){
+    //         // keep looping
+    //         requestAnimationFrame( animate );
+    //         // measure time
+    //         lastTimeMsec	= lastTimeMsec || nowMsec-1000/60
+    //         var deltaMsec	= Math.min(200, nowMsec - lastTimeMsec)
+    //         lastTimeMsec	= nowMsec
+    //         // call each update function
+    //         onRenderFcts.forEach(function(onRenderFct){
+    //             onRenderFct(deltaMsec/1000, nowMsec/1000)
+    //         })
+    //     })
         
-    animate();
+    // animate();
         
-        function animate() {
-				requestAnimationFrame( animate );
-				if ( mixers.length > 0 ) {
-					for ( var i = 0; i < mixers.length; i ++ ) {
-						mixers[ i ].update( clock.getDelta() );
-					}
-				}
-				renderer.render( scene, camera );
-				stats.update();
-			}
+    //     function animate() {
+	// 			requestAnimationFrame( animate );
+	// 			if ( mixers.length > 0 ) {
+	// 				for ( var i = 0; i < mixers.length; i ++ ) {
+	// 					mixers[ i ].update( clock.getDelta() );
+	// 				}
+	// 			}
+	// 			renderer.render( scene, camera );
+	// 			stats.update();
+	// 		}
     
 </script></body>
